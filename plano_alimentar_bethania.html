@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Meu Plano">
+<title>Plano Alimentar</title>
+<style>
+  :root {
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-dark: #085041;
+    --green-border: #9FE1CB;
+    --coral: #FAECE7;
+    --coral-border: #F5C4B3;
+    --coral-text: #993C1D;
+    --coral-dark: #712B13;
+    --purple-light: #EEEDFE;
+    --purple-border: #CECBF6;
+    --purple-text: #26215C;
+    --purple-mid: #3C3489;
+    --amber-light: #FAEEDA;
+    --amber-border: #FAC775;
+    --amber-text: #633806;
+    --gray-bg: #F7F7F5;
+    --gray-card: #FFFFFF;
+    --gray-border: rgba(0,0,0,0.1);
+    --gray-border2: rgba(0,0,0,0.06);
+    --text-primary: #1a1a1a;
+    --text-secondary: #6b6b6b;
+    --text-tertiary: #9b9b9b;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; background: var(--gray-bg); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; color: var(--text-primary); }
+  .app { display: flex; flex-direction: column; height: 100%; max-width: 430px; margin: 0 auto; }
+
+  /* HEADER */
+  .header { background: var(--gray-card); border-bottom: 0.5px solid var(--gray-border); padding: 16px 16px 0; padding-top: calc(16px + env(safe-area-inset-top, 0px)); }
+  .header-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+  .header-title span { color: var(--green); }
+
+  /* TABS TOP */
+  .top-tabs { display: flex; gap: 0; }
+  .top-tab { flex: 1; font-size: 13px; font-weight: 500; padding: 10px 4px; border: none; border-bottom: 2px solid transparent; background: none; color: var(--text-secondary); cursor: pointer; transition: .15s; }
+  .top-tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+  /* SCROLL CONTENT */
+  .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 0 calc(80px + var(--safe-bottom)); }
+  .screen { display: none; padding: 16px; }
+  .screen.active { display: block; }
+
+  /* DAY SELECTOR */
+  .day-strip { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .day-btn { font-size: 12px; font-weight: 500; padding: 6px 12px; border: 0.5px solid var(--gray-border); border-radius: 20px; background: var(--gray-card); color: var(--text-secondary); cursor: pointer; transition: .15s; }
+  .day-btn.active { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+  .day-btn.sp.active { background: var(--amber-light); border-color: var(--amber-border); color: var(--amber-text); }
+  .day-btn.bg.active { background: var(--purple-light); border-color: var(--purple-border); color: var(--purple-text); }
+
+  /* MACRO ROW */
+  .macro-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 14px; }
+  .mc { background: var(--gray-card); border-radius: var(--radius-sm); padding: 8px 6px; text-align: center; border: 0.5px solid var(--gray-border2); }
+  .mc-l { font-size: 9px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .05em; }
+  .mc-v { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-top: 2px; }
+
+  /* MEAL CARDS */
+  .meal-card { background: var(--gray-card); border: 0.5px solid var(--gray-border2); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+  .meal-hd { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; user-select: none; }
+  .meal-time { font-size: 11px; font-weight: 600; color: var(--text-tertiary); min-width: 34px; }
+  .meal-title { font-size: 14px; font-weight: 500; color: var(--text-primary); flex: 1; }
+  .meal-kcal { font-size: 11px; color: var(--text-tertiary); margin-right: 4px; }
+  .meal-chev { font-size: 14px; color: var(--text-tertiary); transition: .2s; display: inline-block; }
+  .meal-chev.open { transform: rotate(180deg); }
+  .meal-sep { height: 0.5px; background: var(--gray-border2); margin: 0 14px; }
+  .meal-body { padding: 10px 14px; display: none; }
+  .meal-body.open { display: block; }
+  .food-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 7px 0; border-bottom: 0.5px solid var(--gray-border2); gap: 8px; }
+  .food-row:last-of-type { border-bottom: none; }
+  .fn { font-size: 13px; color: var(--text-primary); flex: 1; line-height: 1.35; }
+  .fn-sub { font-size: 13px; color: var(--text-secondary); flex: 1; padding-left: 10px; }
+  .fq { font-size: 12px; color: var(--text-secondary); white-space: nowrap; margin-top: 1px; }
+  .opt-lbl { font-size: 10px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .06em; margin: 10px 0 4px; }
+
+  /* NOTES */
+  .note { font-size: 12px; color: var(--green-dark); background: var(--green-light); border: 0.5px solid var(--green-border); border-radius: var(--radius-sm); padding: 8px 10px; margin-top: 8px; line-height: 1.45; }
+  .warn { font-size: 12px; color: var(--coral-dark); background: var(--coral); border: 0.5px solid var(--coral-border); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 10px; line-height: 1.45; }
+
+  /* BADGE */
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 20px; margin-left: 4px; vertical-align: middle; }
+  .b-ok { background: var(--green-light); color: var(--green-dark); }
+  .b-sp { background: var(--amber-light); color: var(--amber-text); }
+  .b-alt { background: var(--purple-light); color: var(--purple-mid); }
+
+  /* SECTION LABEL */
+  .sect-lbl { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text-tertiary); margin: 16px 0 8px; }
+
+  /* SHOPPING LIST */
+  .shop-actions { display: flex; gap: 8px; margin-bottom: 10px; }
+  .shop-actions button { font-size: 12px; font-weight: 500; padding: 7px 14px; border: 0.5px solid var(--gray-border); border-radius: var(--radius-sm); background: var(--gray-card); color: var(--text-secondary); cursor: pointer; }
+  .progress-wrap { margin-bottom: 14px; }
+  .progress-bar { height: 4px; background: var(--gray-border2); border-radius: 2px; overflow: hidden; margin-bottom: 5px; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: .3s; }
+  .prog-txt { font-size: 12px; color: var(--text-secondary); }
+  .cat-block { margin-bottom: 6px; background: var(--gray-card); border: 0.5px solid var(--gray-border2); border-radius: var(--radius); overflow: hidden; }
+  .cat-hd { font-size: 12px; font-weight: 600; color: var(--text-secondary); padding: 10px 14px; border-bottom: 0.5px solid var(--gray-border2); background: var(--gray-bg); display: flex; align-items: center; gap: 6px; }
+  .shop-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 0.5px solid var(--gray-border2); cursor: pointer; }
+  .shop-row:last-child { border-bottom: none; }
+  .shop-check { width: 20px; height: 20px; border: 1.5px solid var(--gray-border); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: .15s; }
+  .shop-check.checked { background: var(--green); border-color: var(--green); }
+  .shop-name { flex: 1; font-size: 13px; color: var(--text-primary); transition: .15s; }
+  .shop-name.checked { color: var(--text-tertiary); text-decoration: line-through; }
+  .shop-qty { font-size: 11px; color: var(--text-tertiary); text-align: right; max-width: 110px; line-height: 1.3; }
+
+  /* REGRAS */
+  .rule-card { background: var(--gray-card); border: 0.5px solid var(--gray-border2); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+  .rule-item { padding: 12px 14px; border-bottom: 0.5px solid var(--gray-border2); }
+  .rule-item:last-child { border-bottom: none; }
+  .rule-title { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 3px; }
+  .rule-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.45; }
+  .supl-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 14px; border-bottom: 0.5px solid var(--gray-border2); gap: 8px; }
+  .supl-row:last-child { border-bottom: none; }
+  .supl-name { font-size: 13px; color: var(--text-primary); flex: 1; }
+  .supl-det { font-size: 12px; color: var(--text-secondary); text-align: right; max-width: 160px; line-height: 1.3; }
+
+  /* BOTTOM NAV */
+  .bottom-nav { background: var(--gray-card); border-top: 0.5px solid var(--gray-border); display: flex; padding-bottom: var(--safe-bottom); }
+  .bnav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; border: none; background: none; color: var(--text-tertiary); cursor: pointer; transition: .15s; font-size: 10px; font-weight: 500; }
+  .bnav-btn.active { color: var(--green); }
+  .bnav-btn svg { width: 22px; height: 22px; }
+  .bnav-icon { font-size: 20px; }
+
+  /* DAY CONTENT */
+  .day-content { display: none; }
+  .day-content.active { display: block; }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --gray-bg: #1c1c1e;
+      --gray-card: #2c2c2e;
+      --gray-border: rgba(255,255,255,0.12);
+      --gray-border2: rgba(255,255,255,0.07);
+      --text-primary: #f2f2f7;
+      --text-secondary: #aeaeb2;
+      --text-tertiary: #636366;
+      --green-light: #0a3d2e;
+      --green-border: #0f6e56;
+      --green-dark: #5DCAA5;
+      --coral: #3d1a10;
+      --coral-border: #712B13;
+      --coral-dark: #F0997B;
+      --purple-light: #1a1740;
+      --purple-border: #3C3489;
+      --purple-mid: #AFA9EC;
+      --purple-text: #AFA9EC;
+      --amber-light: #2d1f04;
+      --amber-border: #633806;
+      --amber-text: #FAC775;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-title">Meu <span>plano</span></div>
+    <div class="top-tabs">
+      <button class="top-tab active" onclick="showScreen('plano',this)">Refeições</button>
+      <button class="top-tab" onclick="showScreen('compras',this)">Compras</button>
+      <button class="top-tab" onclick="showScreen('regras',this)">Regras</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- PLANO -->
+    <div class="screen active" id="s-plano">
+      <div class="day-strip">
+        <button class="day-btn active" onclick="showDay('padrao',this)">Dia padrão</button>
+        <button class="day-btn sp" onclick="showDay('segunda',this)">Segunda</button>
+        <button class="day-btn bg" onclick="showDay('burger',this)">Hambúrguer</button>
+        <button class="day-btn" onclick="showDay('atum',this)">Semana atum</button>
+      </div>
+
+      <!-- PADRÃO -->
+      <div class="day-content active" id="day-padrao">
+        <div class="macro-row">
+          <div class="mc"><div class="mc-l">Kcal</div><div class="mc-v">1700</div></div>
+          <div class="mc"><div class="mc-l">Prot.</div><div class="mc-v">140g</div></div>
+          <div class="mc"><div class="mc-l">Carbo</div><div class="mc-v">155g</div></div>
+          <div class="mc"><div class="mc-l">Gord.</div><div class="mc-v">52g</div></div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">09:00</span><span class="meal-title">Desjejum</span><span class="meal-kcal">~340 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body open">
+            <div class="food-row"><span class="fn">Whey protein concentrado</span><span class="fq">34g</span></div>
+            <div class="food-row"><span class="fn">Leite desnatado UHT</span><span class="fq">120ml</span></div>
+            <div class="food-row"><span class="fn">Café solúvel</span><span class="fq">1 col chá</span></div>
+            <div class="food-row"><span class="fn">Creatina monohidratada</span><span class="fq">5g</span></div>
+            <div class="food-row"><span class="fn">Manga ou maçã</span><span class="fq">150g</span></div>
+          </div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">11:00</span><span class="meal-title">Pré-treino</span><span class="meal-kcal">~200 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="opt-lbl">Opção A</div>
+            <div class="food-row"><span class="fn">Iogurte grego natural</span><span class="fq">100g</span></div>
+            <div class="food-row"><span class="fn">Maçã ou manga</span><span class="fq">1 unid.</span></div>
+            <div class="opt-lbl">Opção B</div>
+            <div class="food-row"><span class="fn">Ovo mexido ou cozido</span><span class="fq">2 ovos</span></div>
+            <div class="food-row"><span class="fn">Maçã ou manga</span><span class="fq">1 unid.</span></div>
+          </div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">13:00</span><span class="meal-title">Almoço</span><span class="meal-kcal">~530 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="food-row"><span class="fn">Filé de frango grelhado</span><span class="fq">200g</span></div>
+            <div class="food-row"><span class="fn">Arroz branco ou integral</span><span class="fq">3 col sopa (75g)</span></div>
+            <div class="food-row"><span class="fn">Feijão carioca</span><span class="fq">1 concha (65g)</span></div>
+            <div class="food-row"><span class="fn">Legumes — escolhe 1 ou 2</span><span class="fq">à vontade</span></div>
+            <div class="food-row"><span class="fn-sub">· Abobrinha refogada</span><span class="fq">livre</span></div>
+            <div class="food-row"><span class="fn-sub">· Brócolis cozido</span><span class="fq">livre</span></div>
+            <div class="food-row"><span class="fn-sub">· Seleta (cenoura, ervilha, vagem, batata, milho)</span><span class="fq">1 col sopa</span></div>
+            <div class="food-row"><span class="fn">Salada — escolhe 1</span><span class="fq">à vontade</span></div>
+            <div class="food-row"><span class="fn-sub">· Rúcula com manga</span><span class="fq">livre</span></div>
+            <div class="food-row"><span class="fn-sub">· Alface com tomate</span><span class="fq">livre</span></div>
+            <div class="food-row"><span class="fn">Água com gás</span><span class="fq">1 copo</span></div>
+            <div class="food-row"><span class="fn">Chocolate Batom <span class="badge b-ok">prazer planejado</span></span><span class="fq">1 unid.</span></div>
+          </div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">16:00</span><span class="meal-title">Lanche da tarde</span><span class="meal-kcal">~280 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="opt-lbl">Opção A — com patinho</div>
+            <div class="food-row"><span class="fn">Café</span><span class="fq">1 xícara</span></div>
+            <div class="food-row"><span class="fn">Patinho moído refogado</span><span class="fq">50g</span></div>
+            <div class="food-row"><span class="fn">Pão de forma integral</span><span class="fq">2 fatias</span></div>
+            <div class="food-row"><span class="fn">Ricota light ou cream cheese</span><span class="fq">2 col sopa</span></div>
+            <div class="opt-lbl">Opção B — com ovo</div>
+            <div class="food-row"><span class="fn">Café</span><span class="fq">1 xícara</span></div>
+            <div class="food-row"><span class="fn">Ovo frito ou mexido</span><span class="fq">2 ovos</span></div>
+            <div class="food-row"><span class="fn">Pão de forma integral</span><span class="fq">2 fatias</span></div>
+            <div class="food-row"><span class="fn">Ricota light ou cream cheese</span><span class="fq">1 col sopa</span></div>
+          </div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">20:00</span><span class="meal-title">Jantar</span><span class="meal-kcal">~320 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="opt-lbl">Opção A — dia leve</div>
+            <div class="food-row"><span class="fn">Filé de frango grelhado</span><span class="fq">150g</span></div>
+            <div class="food-row"><span class="fn">Ovo cozido ou mexido</span><span class="fq">1 ovo</span></div>
+            <div class="food-row"><span class="fn">Salada de folhas + tomate</span><span class="fq">livre</span></div>
+            <div class="food-row"><span class="fn">Azeite</span><span class="fq">1 fio</span></div>
+            <div class="food-row"><span class="fn">Coquinha zero</span><span class="fq">1 lata</span></div>
+            <div class="opt-lbl">Opção B — mais fome</div>
+            <div class="food-row"><span class="fn">Patinho moído ou frango</span><span class="fq">150g</span></div>
+            <div class="food-row"><span class="fn">Ovo mexido</span><span class="fq">2 ovos</span></div>
+            <div class="food-row"><span class="fn">Arroz integral</span><span class="fq">2 col sopa</span></div>
+            <div class="food-row"><span class="fn">Salada de folhas + tomate</span><span class="fq">livre</span></div>
+            <div class="food-row"><span class="fn">Coquinha zero</span><span class="fq">1 lata</span></div>
+          </div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">23:00</span><span class="meal-title">Ceia</span><span class="meal-kcal">~180 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="food-row"><span class="fn">Whey protein concentrado</span><span class="fq">34g</span></div>
+            <div class="food-row"><span class="fn">Leite desnatado UHT</span><span class="fq">120ml</span></div>
+            <div class="note">Não corta essa — síntese muscular durante o sono.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEGUNDA -->
+      <div class="day-content" id="day-segunda">
+        <div class="macro-row">
+          <div class="mc"><div class="mc-l">Kcal</div><div class="mc-v">1720</div></div>
+          <div class="mc"><div class="mc-l">Prot.</div><div class="mc-v">150g</div></div>
+          <div class="mc"><div class="mc-l">Carbo</div><div class="mc-v">155g</div></div>
+          <div class="mc"><div class="mc-l">Gord.</div><div class="mc-v">52g</div></div>
+        </div>
+        <div class="warn">Segunda é dia de pipoca. Almoço e lanche têm proteína aumentada para compensar.</div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">09:00</span><span class="meal-title">Desjejum</span><span class="meal-kcal">~340 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body"><div class="food-row"><span class="fn">Igual ao dia padrão</span></div></div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">11:00</span><span class="meal-title">Pré-treino</span><span class="meal-kcal">~200 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body"><div class="food-row"><span class="fn">Igual ao dia padrão</span></div></div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">13:00</span><span class="meal-title">Almoço <span class="badge b-sp">+ proteína</span></span><span class="meal-kcal">~600 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="food-row"><span class="fn">Filé de frango grelhado</span><span class="fq">250g</span></div>
+            <div class="food-row"><span class="fn">Ovo cozido</span><span class="fq">1 ovo</span></div>
+            <div class="food-row"><span class="fn">Arroz + feijão + legumes + salada</span><span class="fq">igual padrão</span></div>
+            <div class="food-row"><span class="fn">Água com gás + Batom</span><span class="fq">mantidos</span></div>
+          </div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">16:00</span><span class="meal-title">Lanche <span class="badge b-sp">+ proteína</span></span><span class="meal-kcal">~320 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="food-row"><span class="fn">Patinho moído refogado</span><span class="fq">80g</span></div>
+            <div class="food-row"><span class="fn">Ovo mexido ou frito</span><span class="fq">2 ovos</span></div>
+            <div class="food-row"><span class="fn">Pão integral + ricota/cream cheese</span><span class="fq">igual padrão</span></div>
+          </div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">20:00</span><span class="meal-title">Jantar — pipoca</span><span class="meal-kcal">~200 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="food-row"><span class="fn">Pipoca de panela (pouco óleo)</span><span class="fq">~40g milho</span></div>
+            <div class="food-row"><span class="fn">Coquinha zero</span><span class="fq">1 lata</span></div>
+            <div class="note">~170 kcal em 4 xícaras. O dia fecha bem pela proteína extra no almoço e lanche.</div>
+          </div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">23:00</span><span class="meal-title">Ceia</span><span class="meal-kcal">~180 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body"><div class="food-row"><span class="fn">Whey + leite desnatado</span><span class="fq">igual padrão</span></div></div>
+        </div>
+      </div>
+
+      <!-- HAMBÚRGUER -->
+      <div class="day-content" id="day-burger">
+        <div class="macro-row">
+          <div class="mc"><div class="mc-l">Kcal</div><div class="mc-v">1780</div></div>
+          <div class="mc"><div class="mc-l">Prot.</div><div class="mc-v">135g</div></div>
+          <div class="mc"><div class="mc-l">Carbo</div><div class="mc-v">160g</div></div>
+          <div class="mc"><div class="mc-l">Gord.</div><div class="mc-v">60g</div></div>
+        </div>
+        <div class="warn">Máx. 1–2x por semana. Almoço e lanche ficam mais leves para o dia fechar bem.</div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">09:00</span><span class="meal-title">Desjejum</span><span class="meal-kcal">~340 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body"><div class="food-row"><span class="fn">Igual ao dia padrão</span></div></div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">13:00</span><span class="meal-title">Almoço <span class="badge b-alt">mais leve</span></span><span class="meal-kcal">~420 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="food-row"><span class="fn">Filé de frango grelhado</span><span class="fq">180g</span></div>
+            <div class="food-row"><span class="fn">Arroz integral</span><span class="fq">2 col sopa</span></div>
+            <div class="food-row"><span class="fn">Feijão + legumes + salada</span><span class="fq">igual padrão</span></div>
+            <div class="food-row"><span class="fn">Água com gás + Batom</span><span class="fq">mantidos</span></div>
+          </div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">16:00</span><span class="meal-title">Lanche <span class="badge b-alt">mais leve</span></span><span class="meal-kcal">~200 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="food-row"><span class="fn">Café</span><span class="fq">1 xícara</span></div>
+            <div class="food-row"><span class="fn">Iogurte grego natural</span><span class="fq">150g</span></div>
+            <div class="food-row"><span class="fn">Manga ou maçã</span><span class="fq">1 unid. pequena</span></div>
+          </div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">20:00</span><span class="meal-title">Hambúrguer artesanal</span><span class="meal-kcal">~650 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="food-row"><span class="fn">Blend patinho + acém (caseiro)</span><span class="fq">150g</span></div>
+            <div class="food-row"><span class="fn">Pão brioche</span><span class="fq">1 unid.</span></div>
+            <div class="food-row"><span class="fn">Mussarela</span><span class="fq">1 fatia (20g)</span></div>
+            <div class="food-row"><span class="fn">Ketchup</span><span class="fq">1 col sopa</span></div>
+            <div class="food-row"><span class="fn">Folhas + tomate</span><span class="fq">à vontade</span></div>
+            <div class="food-row"><span class="fn">Coquinha zero</span><span class="fq">1 lata</span></div>
+          </div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">23:00</span><span class="meal-title">Ceia</span><span class="meal-kcal">~180 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body"><div class="food-row"><span class="fn">Whey + leite desnatado</span><span class="fq">igual padrão</span></div></div>
+        </div>
+      </div>
+
+      <!-- ATUM -->
+      <div class="day-content" id="day-atum">
+        <div class="note" style="margin-bottom:12px">Rotação de 1 semana por mês. Atum substitui o patinho no lanche ou entra no jantar. Resto do dia igual ao padrão.</div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">16:00</span><span class="meal-title">Lanche com atum</span><span class="meal-kcal">~270 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="food-row"><span class="fn">Café</span><span class="fq">1 xícara</span></div>
+            <div class="food-row"><span class="fn">Atum em água (escorrido)</span><span class="fq">1 lata (170g)</span></div>
+            <div class="food-row"><span class="fn">Pão de forma integral</span><span class="fq">2 fatias</span></div>
+            <div class="food-row"><span class="fn">Ricota light ou cream cheese</span><span class="fq">1 col sopa</span></div>
+          </div>
+        </div>
+        <div class="meal-card">
+          <div class="meal-hd" onclick="tog(this)"><span class="meal-time">20:00</span><span class="meal-title">Jantar leve com atum</span><span class="meal-kcal">~300 kcal</span><span class="meal-chev">›</span></div>
+          <div class="meal-sep"></div>
+          <div class="meal-body">
+            <div class="food-row"><span class="fn">Atum em água</span><span class="fq">1 lata (170g)</span></div>
+            <div class="food-row"><span class="fn">Ovo cozido</span><span class="fq">2 ovos</span></div>
+            <div class="food-row"><span class="fn">Salada de folhas + tomate</span><span class="fq">à vontade</span></div>
+            <div class="food-row"><span class="fn">Azeite</span><span class="fq">1 fio</span></div>
+            <div class="food-row"><span class="fn">Coquinha zero</span><span class="fq">1 lata</span></div>
+            <div class="note">Zero preparo. Alta proteína. Ideal pras noites que não quer cozinhar.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPRAS -->
+    <div class="screen" id="s-compras">
+      <div class="shop-actions">
+        <button onclick="checkAll()">✓ Marcar todos</button>
+        <button onclick="uncheckAll()">↺ Limpar</button>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+        <div class="prog-txt" id="prog-txt">0 itens marcados</div>
+      </div>
+
+      <div class="cat-block">
+        <div class="cat-hd">🥩 Proteínas</div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check" id="chk-0"></div><span class="shop-name">Filé de frango (peito)</span><span class="shop-qty">~2kg / semana</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Patinho moído</span><span class="shop-qty">~500g / semana</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Acém moído (hambúrguer)</span><span class="shop-qty">quando for fazer</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Ovos</span><span class="shop-qty">2 dúzias / semana</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Atum em água (lata)</span><span class="shop-qty">4–5 latas — semana do atum</span></div>
+      </div>
+      <div class="cat-block">
+        <div class="cat-hd">🥛 Laticínios e suplementos</div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Whey protein concentrado</span><span class="shop-qty">verificar estoque</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Leite desnatado UHT</span><span class="shop-qty">~1,5L / semana</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Iogurte grego natural</span><span class="shop-qty">4–5 potes (100g)</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Ricota light</span><span class="shop-qty">200g</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Cream cheese (opcional)</span><span class="shop-qty">1 pote</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Mussarela (hambúrguer)</span><span class="shop-qty">quando for fazer</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Creatina monohidratada</span><span class="shop-qty">verificar estoque</span></div>
+      </div>
+      <div class="cat-block">
+        <div class="cat-hd">🥦 Vegetais e legumes</div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Alface</span><span class="shop-qty">1–2 pés</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Rúcula</span><span class="shop-qty">1 maço</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Tomate salada</span><span class="shop-qty">6–8 unidades</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Abobrinha</span><span class="shop-qty">2–3 unidades</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Brócolis</span><span class="shop-qty">1 cabeça</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Seleta de legumes congelada</span><span class="shop-qty">1 pacote (500g)</span></div>
+      </div>
+      <div class="cat-block">
+        <div class="cat-hd">🍎 Frutas</div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Manga</span><span class="shop-qty">3–4 unidades</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Maçã</span><span class="shop-qty">4–5 unidades</span></div>
+      </div>
+      <div class="cat-block">
+        <div class="cat-hd">🍞 Carboidratos e grãos</div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Arroz (branco ou integral)</span><span class="shop-qty">1kg</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Feijão carioca</span><span class="shop-qty">500g</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Pão de forma integral</span><span class="shop-qty">1 pacote</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Milho para pipoca</span><span class="shop-qty">1 pacote</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Pão brioche (hambúrguer)</span><span class="shop-qty">quando for fazer</span></div>
+      </div>
+      <div class="cat-block">
+        <div class="cat-hd">🧃 Bebidas e outros</div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Coquinha zero</span><span class="shop-qty">6–7 latas</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Água com gás</span><span class="shop-qty">6–8 garrafinhas</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Café solúvel</span><span class="shop-qty">verificar estoque</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Azeite de oliva</span><span class="shop-qty">verificar estoque</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Chocolate Batom</span><span class="shop-qty">7 unidades (1/dia)</span></div>
+        <div class="shop-row" onclick="toggleItem(this)"><div class="shop-check"></div><span class="shop-name">Ketchup (hambúrguer)</span><span class="shop-qty">quando for fazer</span></div>
+      </div>
+    </div>
+
+    <!-- REGRAS -->
+    <div class="screen" id="s-regras">
+      <div class="sect-lbl">Regras do dia</div>
+      <div class="rule-card">
+        <div class="rule-item"><div class="rule-title">Proteína em toda refeição principal</div><div class="rule-desc">Frango, patinho, ovo, cottage, whey — sempre tem uma no prato.</div></div>
+        <div class="rule-item"><div class="rule-title">Carbo pesado antes e depois do treino</div><div class="rule-desc">Arroz, pão integral, fruta — no pré e no almoço. À noite, mais leve.</div></div>
+        <div class="rule-item"><div class="rule-title">Não pule o pré-treino</div><div class="rule-desc">Sem combustível o treino rende menos e catabolismo aumenta.</div></div>
+        <div class="rule-item"><div class="rule-title">A ceia de whey é inegociável</div><div class="rule-desc">Proteína antes de dormir sustenta a recuperação muscular durante o sono.</div></div>
+        <div class="rule-item"><div class="rule-title">Compulsão: volta na próxima refeição, sem punição</div><div class="rule-desc">Uma refeição fora não desfaz nada. O ciclo restrição-culpa-compulsão, sim.</div></div>
+        <div class="rule-item"><div class="rule-title">Final de semana sem neura</div><div class="rule-desc">O que move o ponteiro são os 5 dias de treino. Consistência, não perfeição.</div></div>
+        <div class="rule-item"><div class="rule-title">3L de água por dia — você já faz</div><div class="rule-desc">Mantém. Hidratação adequada melhora performance e recuperação.</div></div>
+      </div>
+      <div class="sect-lbl">Suplementação</div>
+      <div class="rule-card">
+        <div class="supl-row"><span class="supl-name">Whey protein</span><span class="supl-det">2x/dia — manhã e ceia</span></div>
+        <div class="supl-row"><span class="supl-name">Creatina monohidratada</span><span class="supl-det">5g/dia — manhã com whey</span></div>
+        <div class="supl-row"><span class="supl-name">Vitamina D3</span><span class="supl-det">checar com médico</span></div>
+        <div class="supl-row"><span class="supl-name">Ômega 3</span><span class="supl-det">anti-inflamatório — bom para os joelhos. Confirma com médico pós-op</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showScreen(id, btn) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('.top-tab').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('s-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+function showDay(id, btn) {
+  document.querySelectorAll('.day-content').forEach(function(d){ d.classList.remove('active'); });
+  document.querySelectorAll('.day-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('day-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+function tog(hd) {
+  var body = hd.nextElementSibling.nextElementSibling;
+  var chev = hd.querySelector('.meal-chev');
+  var open = body.classList.toggle('open');
+  if(chev) {
+    chev.style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)';
+  }
+}
+var total = 0;
+function countItems() { total = document.querySelectorAll('.shop-row').length; }
+function updateProgress() {
+  var checked = document.querySelectorAll('.shop-check.checked').length;
+  var pct = total > 0 ? Math.round(checked / total * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-txt').textContent = checked + ' de ' + total + ' itens marcados';
+}
+function toggleItem(row) {
+  var chk = row.querySelector('.shop-check');
+  var nm = row.querySelector('.shop-name');
+  var on = chk.classList.toggle('checked');
+  nm.classList.toggle('checked', on);
+  updateProgress();
+}
+function checkAll() {
+  document.querySelectorAll('.shop-row').forEach(function(r) {
+    r.querySelector('.shop-check').classList.add('checked');
+    r.querySelector('.shop-name').classList.add('checked');
+  });
+  updateProgress();
+}
+function uncheckAll() {
+  document.querySelectorAll('.shop-row').forEach(function(r) {
+    r.querySelector('.shop-check').classList.remove('checked');
+    r.querySelector('.shop-name').classList.remove('checked');
+  });
+  updateProgress();
+}
+countItems();
+updateProgress();
+</script>
+</body>
+</html>
